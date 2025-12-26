@@ -1,6 +1,7 @@
-from typing import List, Protocol
+from typing import List, Protocol, runtime_checkable
 
 
+@runtime_checkable
 class Source(Protocol):
     """"
     Source is a protocol that defines the read method.

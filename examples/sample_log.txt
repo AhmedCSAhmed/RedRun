@@ -1,0 +1,166 @@
+[INFO] 2025-01-14T09:12:03.442Z Starting build pipeline: job=ci-linux-x86_64
+
+[INFO] Git commit: 9f3a1c7e8b2d4f1c9a7e3b6d2f91ac33e8c1fa02
+
+[INFO] Branch: feature/refactor-cache-layer
+
+[INFO] Runner: ubuntu-22.04 (kernel 6.2.0-1012-azure)
+
+
+
+[DEBUG] Resolving environment variables...
+
+[DEBUG] JAVA_HOME=/usr/lib/jvm/temurin-17
+
+[DEBUG] GRADLE_OPTS=-Dorg.gradle.daemon=false
+
+
+
+[INFO] Downloading dependencies...
+
+[INFO] Resolving org.slf4j:slf4j-api:1.7.36
+
+[INFO] Resolving com.fasterxml.jackson.core:jackson-databind:2.15.1
+
+[WARN] Dependency org.apache.logging.log4j:log4j-core:2.13.1 is deprecated
+
+[WARN] Consider upgrading to >=2.17.1 due to known CVEs
+
+
+
+[DEBUG] Cache hit: ~/.gradle/caches/modules-2/files-2.1
+
+[DEBUG] Cache miss: com.company.internal:auth-utils:4.8.2
+
+
+
+[INFO] Compiling 142 source files...
+
+[WARN] src/main/java/com/company/cache/CacheManager.java:87: unchecked cast
+
+[WARN] src/main/java/com/company/api/UserController.java uses deprecated API
+
+
+
+[INFO] Running unit tests...
+
+[DEBUG] Test suite: CacheManagerTest
+
+[DEBUG] Test suite: AuthServiceTest
+
+[DEBUG] Test suite: UserControllerTest
+
+
+
+[ERROR] Test failed: AuthServiceTest.shouldRefreshTokenWhenExpired
+
+java.lang.NullPointerException: Cannot invoke "Token.getExpiry()" because "token" is null
+
+    at com.company.auth.AuthService.refreshToken(AuthService.java:142)
+
+    at com.company.auth.AuthServiceTest.shouldRefreshTokenWhenExpired(AuthServiceTest.java:58)
+
+
+
+[INFO] Retrying test (attempt 2/3)...
+
+[INFO] Test passed on retry
+
+
+
+[WARN] Flaky test detected: AuthServiceTest.shouldRefreshTokenWhenExpired
+
+[WARN] Marking test as unstable
+
+
+
+[INFO] Starting integration tests...
+
+[DEBUG] Spawning Docker container: postgres:14-alpine
+
+[DEBUG] Waiting for container health check...
+
+
+
+[WARN] Health check timeout exceeded (30s), retrying...
+
+[INFO] Container healthy after retry
+
+
+
+[INFO] Executing integration test: UserFlowIT
+
+[DEBUG] HTTP POST /api/login -> 200 OK
+
+[DEBUG] HTTP GET /api/profile -> 200 OK
+
+
+
+[ERROR] Unexpected exception during request handling
+
+java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms
+
+    at com.zaxxer.hikari.pool.HikariPool.createTimeoutException(HikariPool.java:696)
+
+    at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:197)
+
+    at com.company.db.UserRepository.findById(UserRepository.java:51)
+
+
+
+[INFO] Retrying integration test (attempt 1/2)...
+
+
+
+[INFO] Integration test passed on retry
+
+
+
+[INFO] Packaging application artifact...
+
+[DEBUG] Creating JAR: build/libs/app-service-1.12.0.jar
+
+
+
+[INFO] Uploading artifact to storage bucket...
+
+[WARN] Network latency spike detected (p95=1840ms)
+
+
+
+[ERROR] Upload failed: Connection reset by peer
+
+[INFO] Retrying upload (attempt 2/3)...
+
+
+
+[INFO] Upload successful
+
+
+
+[INFO] Starting deployment validation step...
+
+[DEBUG] Fetching deployment config from /etc/deploy/config.yaml
+
+
+
+[FATAL] Unhandled exception occurred during validation
+
+java.lang.IllegalStateException: Required configuration value 'AUTH_SERVICE_ENDPOINT' is missing
+
+    at com.company.deploy.ConfigValidator.require(ConfigValidator.java:73)
+
+    at com.company.deploy.DeploymentValidator.validate(DeploymentValidator.java:41)
+
+    at com.company.Main.main(Main.java:19)
+
+
+
+[ERROR] Build failed due to fatal error
+
+[INFO] Cleaning up workspace...
+
+[INFO] Job ci-linux-x86_64 finished with status: FAILED
+
+[INFO] Total duration: 12m 47s
+

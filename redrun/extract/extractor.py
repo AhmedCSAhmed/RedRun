@@ -77,7 +77,18 @@ class Extractor:
                 level = log_entry.get('level', '').upper()  # Convert to uppercase for case-insensitive comparison
                 message = log_entry.get('message', '')
                 
-                if level in self.errors or self._is_stack_trace(message):
+                # Skip UNPARSED lines that are just traceback continuation lines
+                # (like "Traceback (most recent call last):" or "File ..." lines)
+                # These are not actionable errors on their own - we only want the actual exception line
+                if level == 'UNPARSED':
+                    # Only extract UNPARSED lines if they contain an actual exception type
+                    # (not just traceback headers or file references)
+                    if self._has_exception_type(message) and not self._is_traceback_header(message):
+                        yield log_entry
+                    else:
+                        self.filtered_noise_count += 1
+                        continue
+                elif level in self.errors or self._is_stack_trace(message):
                     yield log_entry
                 else:
                     self.filtered_noise_count += 1 # We filtered out this line as ("noise")
@@ -138,6 +149,53 @@ class Extractor:
             return True
         
         return False
+    
+    def _is_traceback_header(self, message: str) -> bool:
+        """
+        Check if the message is just a traceback header/continuation line.
+        
+        These are lines like "Traceback (most recent call last):" or "File ..."
+        that don't contain the actual exception - they're just context.
+        
+        Args:
+            message: The message to check.
+        
+        Returns:
+            True if this is just a traceback header line, False otherwise.
+        """
+        if not message:
+            return False
+        
+        # Check if it's just a traceback header (no exception type)
+        if self.PYTHON_TRACEBACK.search(message) and not self.EXCEPTION_TYPE.search(message):
+            return True
+        
+        # Check if it's just a file reference (no exception type)
+        if self.PYTHON_FILE_REF.search(message) and not self.EXCEPTION_TYPE.search(message):
+            return True
+        
+        # Check if it's just "at 0x..." memory address (no exception type)
+        if self.PYTHON_MEMORY_ADDR.search(message) and not self.EXCEPTION_TYPE.search(message):
+            return True
+        
+        return False
+    
+    def _has_exception_type(self, message: str) -> bool:
+        """
+        Check if the message contains an actual exception type.
+        
+        Args:
+            message: The message to check.
+        
+        Returns:
+            True if the message contains an exception type, False otherwise.
+        """
+        if not message:
+            return False
+        
+        # Check for exception types (Exception, Error, etc.)
+        return bool(self.EXCEPTION_TYPE.search(message) or 
+                   self.JAVA_EXCEPTION.search(message))
                 
         
         

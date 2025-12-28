@@ -9,7 +9,7 @@ description = "CI failure analysis tool that parses build logs and extracts erro
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [
-    {name = "RedRun Contributors"}
+    {name = "Ahmed Ahmed", email = "ahmed.ahmed.dev04@gmail.com"}
 ]
 keywords = ["ci", "logs", "error-analysis", "build-logs", "ci-failure", "log-parsing", "devops"]
 classifiers = [

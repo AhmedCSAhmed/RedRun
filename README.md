@@ -23,54 +23,108 @@ Modern CI systems surface large volumes of log output but provide little structu
 
 ## Installation
 
-### Development Installation (Editable Mode)
+### Easiest Method: Install from GitHub
 
-To install RedRun in development mode so you can use it and make changes:
+Install RedRun directly from GitHub with one command:
 
 ```bash
-# Clone or navigate to the RedRun directory
+pip install git+https://github.com/<username>/RedRun.git
+```
+
+Replace `<username>` with the actual GitHub username or organization name.
+
+### Alternative: Install from Source
+
+If you prefer to clone the repository first:
+
+```bash
+# Step 1: Clone the repository
+git clone https://github.com/<username>/RedRun.git
 cd RedRun
 
-# Create a virtual environment (if you haven't already)
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install in editable mode
+# Step 2: Install RedRun
 pip install -e .
 ```
 
-After installation, you can use RedRun from anywhere (as long as your virtual environment is activated):
+### Prerequisites
 
-```bash
-# Activate your virtual environment first
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Then use redrun
-redrun analyze build.log
-```
-
-**Note**: If the `redrun` command doesn't work, you can always use:
-
-```bash
-python -m redrun.cli.main analyze build.log
-```
+- Python 3.8 or higher
+- pip (Python package installer)
+- git (for cloning the repository)
 
 ## Usage
 
-### Basic Usage
+### Basic Commands
 
 ```bash
 # Analyze a log file
 redrun analyze build.log
 
-# Read from stdin (pipe input)
+# Read from stdin (pipe input from other commands)
 cat build.log | redrun analyze
 
-# Summary only (quick overview)
+# Get a quick summary without detailed error listings
 redrun analyze build.log --summary-only
+
+# Show help
+redrun --help
 ```
 
-### Example Output
+### Common Use Cases
+
+**Analyze CI Build Logs:**
+
+```bash
+# Analyze a downloaded build log
+redrun analyze build.log
+
+# Pipe from curl/wget
+curl https://your-ci-system.com/builds/123/logs | redrun analyze
+```
+
+**Analyze Application Logs:**
+
+```bash
+# Analyze application error logs
+redrun analyze app.log
+
+# Filter for specific time periods
+tail -n 1000 app.log | redrun analyze
+```
+
+**Real-time Log Monitoring:**
+
+```bash
+# Monitor logs in real-time
+tail -f app.log | redrun analyze
+```
+
+### Output Interpretation
+
+RedRun categorizes errors into the following types:
+
+- **Test Failure**: Unit tests, integration tests, or test suites that failed
+- **Dependency Error**: Package resolution, missing dependencies, version conflicts
+- **Infrastructure Timeout**: Network timeouts, operation timeouts, time limits exceeded
+- **Build Error**: Compilation errors, syntax errors, type errors, build failures
+- **Lint Error**: Code style violations, linting failures
+- **Authentication Error**: Authentication failures, invalid credentials, expired tokens
+- **Network Error**: Connection issues, DNS failures, network unreachable
+- **Configuration Error**: Missing configuration, invalid settings, environment variables
+- **Database Error**: Database connection failures, query timeouts, SQL errors
+- **Permission Error**: File system permissions, access denied errors
+- **Resource Error**: Out of memory, disk full, quota exceeded
+- **Other**: Unclassified errors or errors that don't match specific patterns
+
+Each error includes:
+
+- **Line Number**: Where the error occurred in the original log
+- **Log Level**: ERROR, FATAL, CRITICAL, etc.
+- **Category**: The classification category
+- **Confidence**: How confident RedRun is in the classification (0-100%)
+- **Message Preview**: A preview of the error message
+
+## Example Output
 
 ```
 ================================================================================
@@ -82,7 +136,6 @@ redrun analyze build.log --summary-only
   ████████████████████████████████████████████████████████████████████████████
 
 ================================================================================
-
 
 ================================================================================
 FAILURE SUMMARY

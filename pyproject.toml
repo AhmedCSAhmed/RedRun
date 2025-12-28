@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "redrun"
+version = "0.1.0"
+description = "CI failure analysis tool that parses build logs and extracts error information"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "RedRun Contributors"}
+]
+keywords = ["ci", "logs", "error-analysis", "build-logs", "ci-failure", "log-parsing", "devops"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+    "Topic :: Utilities",
+]
+
+[project.scripts]
+redrun = "redrun._entrypoint:main"
+
+[tool.setuptools]
+packages = {find = {}}
+

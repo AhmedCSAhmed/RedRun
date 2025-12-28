@@ -33,18 +33,14 @@ env/
 *.swo
 *~
 
+# OS
+.DS_Store
+Thumbs.db
+
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
-.tox/
-.hypothesis/
 
-# Test artifacts (but keep test files)
-tests/__pycache__/
-tests/.pytest_cache/
-
-# Project specific
+# Logs
 *.log
-tests/test_commands.txt
-

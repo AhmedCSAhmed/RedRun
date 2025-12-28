@@ -1,3 +1,18 @@
+"""
+Error classification module.
+
+This module provides the Classifier class which categorizes extracted
+errors into actionable categories using rule-based pattern matching.
+The classifier uses sophisticated features including:
+- Confidence scoring based on pattern specificity and log level
+- Context-aware classification using surrounding log entries
+- Pattern performance tracking for analysis and debugging
+
+The classification is deterministic and explainable, making it suitable
+for CI/CD environments where understanding why an error was classified
+a certain way is important.
+"""
+
 from typing import Dict, List, Tuple, Optional
 import re
 import logging
@@ -204,7 +219,24 @@ class Classifier:
         """
         Calculate confidence boost based on surrounding error context.
         
-        If surrounding errors are the same category, increase confidence.
+        This method implements context-aware classification by checking if
+        surrounding errors (from the context window) match the same category.
+        If multiple recent errors are of the same category, it increases
+        confidence in the classification, as errors often cluster by type.
+        
+        Args:
+            category: The category being considered for classification.
+            context: List of recent error entries (typically last 3-10 entries)
+                    that provide context for the current error.
+        
+        Returns:
+            Confidence boost value between 0.0 and 0.15. The boost is
+            proportional to the number of matching context errors, with
+            a maximum boost of 0.15 (15 percentage points).
+        
+        Note:
+            This method checks the last 3 context errors to avoid excessive
+            computation while still providing useful context information.
         """
         if not context:
             return 0.0
@@ -224,6 +256,24 @@ class Classifier:
     def _classify_from_context(self, context: List[Dict[str, str]]) -> Optional[str]:
         """
         Attempt to classify based on surrounding context when direct pattern match fails.
+        
+        This method is used as a fallback when no pattern directly matches
+        the error message. It examines recent context errors to infer the
+        category, which is useful for errors that are part of a larger
+        failure pattern but don't contain explicit category keywords.
+        
+        Args:
+            context: List of recent error entries (typically last 5-10 entries)
+                    that provide context for classification.
+        
+        Returns:
+            Category string if a matching pattern is found in context, None otherwise.
+            The category is determined by finding the first pattern match in
+            the reversed context (most recent first).
+        
+        Note:
+            This method checks the last 5 context errors in reverse order
+            (most recent first) to find the most relevant classification.
         """
         if not context:
             return None

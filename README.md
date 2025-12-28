@@ -21,26 +21,101 @@ Modern CI systems surface large volumes of log output but provide little structu
 - Low noise; prioritizes root causes over raw logs
 - Extensible architecture for future enhancements
 
-## Example Usage
+## Installation
+
+### Development Installation (Editable Mode)
+
+To install RedRun in development mode so you can use it and make changes:
 
 ```bash
+# Clone or navigate to the RedRun directory
+cd RedRun
+
+# Create a virtual environment (if you haven't already)
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install in editable mode
+pip install -e .
+```
+
+After installation, you can use RedRun from anywhere (as long as your virtual environment is activated):
+
+```bash
+# Activate your virtual environment first
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Then use redrun
+redrun analyze build.log
+```
+
+**Note**: If the `redrun` command doesn't work, you can always use:
+
+```bash
+python -m redrun.cli.main analyze build.log
+```
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Analyze a log file
 redrun analyze build.log
 
+# Read from stdin (pipe input)
+cat build.log | redrun analyze
 
+# Summary only (quick overview)
+redrun analyze build.log --summary-only
+```
+
+### Example Output
+
+```
+================================================================================
+
+  ████████████████████████████████████████████████████████████████████████████
+  █                                                                          █
+  █                              REDRUN                              █
+  █                                                                          █
+  ████████████████████████████████████████████████████████████████████████████
+
+================================================================================
+
+
+================================================================================
 FAILURE SUMMARY
----------------
-Test Failures: 4
-Dependency Failures: 2
-Infra Timeouts: 1
+================================================================================
+Total log lines: 166
+Errors extracted: 8
+Noise filtered: 158
 
-Top Error:
-AssertionError in UserServiceTest
+Category Breakdown:
+--------------------------------------------------------------------------------
+  Build Error                    : 4
+  Test Failure                   : 1
+  Database Error                 : 1
+  Network Error                  : 1
+  Configuration Error            : 1
 
+================================================================================
+DETAILED ERRORS
+================================================================================
+...
+```
 
+## Project Structure
 
+```
 redrun/
 ├── cli/          # CLI entrypoint
 ├── ingest/       # log ingestion and normalization
 ├── extract/      # error extraction
 ├── classify/     # rule-based failure classification
 └── output/       # CLI output formatting
+```
+
+## Credits
+
+Built by Ahmed Ahmed (MVP)

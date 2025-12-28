@@ -1,3 +1,12 @@
+"""
+Log normalization module.
+
+This module provides the Normalizer class which converts raw log lines
+from various formats into a structured dictionary format. It uses multiple
+regex patterns to handle different log formats commonly found in CI/CD
+environments.
+"""
+
 from typing import List, Dict
 from .sources.source import Source
 import re
@@ -123,7 +132,6 @@ class Normalizer:
                         "line_number": str(line_num)  
                     })
                     unparsed_count += 1
-                    logger.warning(f"Could not parse log line (no pattern match): {line[:50]}...")
                      
             except Exception as e:
                 logger.error(f"Error parsing log line: {e}", exc_info=True)

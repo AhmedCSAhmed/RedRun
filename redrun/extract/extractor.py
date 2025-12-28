@@ -1,3 +1,12 @@
+"""
+Error extraction module.
+
+This module provides the Extractor class which filters normalized log
+entries to identify error-level events and stack traces. It uses compiled
+regex patterns for efficient detection of Python and Java stack traces,
+as well as filtering by log level (ERROR, FATAL, CRITICAL).
+"""
+
 from typing import List, Dict, Iterator
 import re
 import logging

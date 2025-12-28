@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>root@redrun:~$ tail -f /var/log/syslog</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #050505;
+            --fg: #cccccc;
+            --dim: #555555;
+            --red: #ff3333;
+            --green: #00ff99;
+            --blue: #4488ff;
+            --purple: #bd93f9;
+            --yellow: #f1fa8c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- THE GRID: Perfect alignment for Time, Level, and Message --- */
+        .log-container {
+            display: grid;
+            grid-template-columns: min-content 80px 1fr;
+            column-gap: 15px;
+            row-gap: 2px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 50px;
+        }
+
+        /* --- TEXT STYLES --- */
+        .ts { color: var(--dim); white-space: nowrap; user-select: none; }
+        .lvl { font-weight: 600; user-select: none; }
+        .msg { word-break: break-word; white-space: pre-wrap; }
+
+        /* Level Colors */
+        .l-boot { color: var(--dim); }
+        .l-info { color: var(--blue); }
+        .l-warn { color: var(--yellow); }
+        .l-err  { color: var(--red); }
+        .l-ok   { color: var(--green); }
+        .l-user { color: var(--purple); }
+
+        /* --- COMPONENTS --- */
+        
+        /* 1. The Big ASCII Header */
+        .ascii-art {
+            grid-column: 1 / -1;
+            color: var(--red);
+            font-weight: bold;
+            font-size: 12px;
+            line-height: 1.1;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+            animation: flicker 4s infinite;
+        }
+
+        /* 2. The Install Prompt */
+        .cmd-line {
+            grid-column: 1 / -1;
+            margin: 20px 0;
+            padding: 15px;
+            background: #0f0f0f;
+            border: 1px solid #222;
+            color: var(--fg);
+            font-size: 16px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        .cmd-prompt { color: var(--green); margin-right: 10px; font-weight: bold; }
+        .cmd-input { color: #fff; font-weight: bold; }
+
+        /* 3. Code/Demo Blocks */
+        .log-block {
+            grid-column: 3 / 4;
+            background: #0a0a0a;
+            border-left: 2px solid var(--dim);
+            padding: 15px;
+            margin: 5px 0 15px 0;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* Links */
+        a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--dim); transition: 0.2s;}
+        a:hover { color: var(--red); border-bottom-style: solid; }
+
+        /* --- ANIMATIONS --- */
+        
+        /* The "Stream In" Effect */
+        .stream-item {
+            opacity: 0;
+            animation: appear 0.1s forwards;
+        }
+
+        @keyframes appear { to { opacity: 1; } }
+        @keyframes flicker {
+            0% { opacity: 1; } 3% { opacity: 0.8; } 6% { opacity: 1; }
+            7% { opacity: 1; } 8% { opacity: 0.4; } 9% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .cursor {
+            display: inline-block; width: 10px; height: 18px; background: var(--green);
+            animation: blink 1s step-end infinite; vertical-align: text-bottom;
+        }
+
+        /* Delays to simulate loading logs */
+        .d-0 { animation-delay: 0ms; }
+        .d-1 { animation-delay: 200ms; }
+        .d-2 { animation-delay: 600ms; }
+        .d-3 { animation-delay: 1000ms; }
+        .d-4 { animation-delay: 1400ms; }
+        .d-5 { animation-delay: 1800ms; } /* Install Command */
+        .d-6 { animation-delay: 2500ms; } /* Analysis */
+        .d-7 { animation-delay: 3500ms; } /* Footer */
+
+        /* Mobile Responsive */
+        @media(max-width: 768px) {
+            .log-container { grid-template-columns: min-content 1fr; row-gap: 5px; }
+            .lvl { display: none; } /* Hide levels on small screens to save space */
+            .ascii-art { font-size: 8px; }
+            .log-block, .cmd-line { grid-column: 1 / -1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="log-container">
+
+        <div class="ascii-art d-0 stream-item">
+██████╗ ███████╗██████╗ ██████╗ ██╗   ██╗███╗   ██╗
+██╔══██╗██╔════╝██╔══██╗██╔══██╗██║   ██║████╗  ██║
+██████╔╝█████╗  ██║  ██║██████╔╝██║   ██║██╔██╗ ██║
+██╔══██╗██╔══╝  ██║  ██║██╔══██╗██║   ██║██║╚██╗██║
+██║  ██║███████╗██████╔╝██║  ██║╚██████╔╝██║ ╚████║
+╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+>> DEV_INFRA_FAILURE_ANALYSIS // KERNEL_MODE
+        </div>
+
+        <div class="ts d-0 stream-item">[00:00:00]</div> <div class="lvl l-boot d-0 stream-item">KERNEL</div> <div class="msg d-0 stream-item">Linux version 5.15.0-76-generic (buildd@lcy02) (gcc (Ubuntu 11.3.0))</div>
+        <div class="ts d-0 stream-item">[00:00:00]</div> <div class="lvl l-boot d-0 stream-item">KERNEL</div> <div class="msg d-0 stream-item">Command line: BOOT_IMAGE=/boot/vmlinuz-5.15.0-76 root=UUID=123e4567-e89b...</div>
+        <div class="ts d-0 stream-item">[00:00:00]</div> <div class="lvl l-boot d-0 stream-item">KERNEL</div> <div class="msg d-0 stream-item">x86/fpu: Supporting XSAVE feature 0x001: 'x87 floating point registers'</div>
+        <div class="ts d-0 stream-item">[00:00:00]</div> <div class="lvl l-boot d-0 stream-item">KERNEL</div> <div class="msg d-0 stream-item">bios-e820: [mem 0x0000000000000000-0x000000000009fbff] usable</div>
+        <div class="ts d-0 stream-item">[00:00:01]</div> <div class="lvl l-info d-0 stream-item">SYSTEM</div> <div class="msg d-0 stream-item">Mounting root file system... OK.</div>
+        <div class="ts d-0 stream-item">[00:00:01]</div> <div class="lvl l-info d-0 stream-item">SYSTEM</div> <div class="msg d-0 stream-item">Starting RedRun Daemon... OK.</div>
+
+        <div class="ts d-1 stream-item">[00:00:02]</div> <div class="lvl l-user d-1 stream-item">AUTH</div>   <div class="msg d-1 stream-item">Detecting User Identity...</div>
+        
+        <div class="ts d-2 stream-item">[00:00:03]</div> <div class="lvl l-user d-2 stream-item">PROFILE</div> <div class="msg d-2 stream-item">Role: <strong style="color: white;">Software Engineer (New Grad)</strong></div>
+        <div class="ts d-2 stream-item">[00:00:03]</div> <div class="lvl l-user d-2 stream-item">PROFILE</div> <div class="msg d-2 stream-item">Focus: <strong style="color: white;">Developer Infrastructure (DevInfra)</strong></div>
+        <div class="ts d-2 stream-item">[00:00:03]</div> <div class="lvl l-user d-2 stream-item">HISTORY</div> <div class="msg d-2 stream-item">Previous Exp: <span style="color: var(--blue);">@LinkedIn</span> (Engineering Intern)</div>
+        <div class="ts d-2 stream-item">[00:00:03]</div> <div class="lvl l-user d-2 stream-item">HISTORY</div> <div class="msg d-2 stream-item">Location: San Francisco, CA</div>
+        <div class="ts d-2 stream-item">[00:00:04]</div> <div class="lvl l-ok d-2 stream-item">ACCESS</div>  <div class="msg d-2 stream-item">Session Established. Welcome back.</div>
+
+        <div class="ts d-3 stream-item" style="opacity:0">.</div><div class="lvl d-3 stream-item"></div><div class="msg d-3 stream-item"></div>
+
+        <div class="ts d-3 stream-item">[00:00:05]</div> <div class="lvl l-warn d-3 stream-item">ALERT</div>  <div class="msg d-3 stream-item">Incoming Stream: <span style="color: var(--yellow);">CI_BUILD_LOGS (14MB)</span></div>
+        <div class="ts d-3 stream-item">[00:00:05]</div> <div class="lvl l-warn d-3 stream-item">NOISE</div>  <div class="msg d-3 stream-item">Signal-to-Noise Ratio: &lt; 1%. High cognitive load detected.</div>
+        <div class="ts d-3 stream-item">[00:00:05]</div> <div class="lvl l-boot d-3 stream-item">STDOUT</div> <div class="msg d-3 stream-item" style="color:#444">[INFO] Downloading https://repo.maven.apache.org/... (4000 lines hidden)</div>
+        <div class="ts d-4 stream-item">[00:00:06]</div> <div class="lvl l-info d-4 stream-item">ACTION</div> <div class="msg d-4 stream-item">Initializing <strong>RedRun</strong> deterministic parser.</div>
+
+        <div class="cmd-line d-5 stream-item">
+            <span class="cmd-prompt">root@redrun:~$</span>
+            <span class="cmd-input">pip install redrun</span>
+        </div>
+
+        <div class="ts d-6 stream-item">[00:00:10]</div> <div class="lvl l-info d-6 stream-item">EXEC</div>   <div class="msg d-6 stream-item">Running analysis on <span style="text-decoration: underline;">build_failure.log</span>...</div>
+
+        <div class="log-block d-6 stream-item" style="border-left-color: var(--red);">
+<span style="color:var(--red); font-weight: bold;">FAILURE SUMMARY</span>
+================
+<span style="color:var(--dim)">Time: 40ms | Rules: Python, Docker, K8s</span>
+
+<span style="color:var(--blue)">CRITICAL ERROR DETECTED:</span>
+File:   <span style="color:var(--green)">/src/db/migrations/004_users.py</span>
+Error:  <span style="color:var(--red)">TransactionManagementError</span>
+Detail: An atomic block was attempted in a transaction-disabled context.
+
+<span style="color:var(--dim)">Context:
+> cursor.execute("ALTER TABLE users...")
+> <span style="color:var(--red)">RuntimeError: Transaction is not active.</span></span>
+        </div>
+
+        <div class="ts d-6 stream-item">[00:00:11]</div> <div class="lvl l-warn d-6 stream-item">FLAG</div>   <div class="msg d-6 stream-item">Feature <span style="color:var(--yellow)">AI_SUGGEST</span> detected.</div>
+        
+        <div class="log-block d-6 stream-item" style="border-left-color: var(--purple);">
+<span style="color:var(--purple); font-weight: bold;">AI SUGGESTION (EXPERIMENTAL)</span>
+----------------------------
+The migration is failing because tests run in `autocommit=False` mode.
+
+<span style="color:var(--red)">- with transaction.atomic():</span>
+<span style="color:var(--green)">+ with transaction.atomic(savepoint=False):</span>
+        </div>
+
+        <div class="ts d-6 stream-item">[00:00:12]</div> <div class="lvl l-info d-6 stream-item">SYS</div>    <div class="msg d-6 stream-item">Auto-apply <span style="color:var(--red)">DISABLED</span>. Human review required.</div>
+
+        <div class="ts d-7 stream-item" style="opacity:0">.</div><div class="lvl d-7 stream-item"></div><div class="msg d-7 stream-item"></div>
+
+        <div class="ts d-7 stream-item">[00:00:15]</div> <div class="lvl l-ok d-7 stream-item">DONE</div>   <div class="msg d-7 stream-item">Analysis Complete. Awaiting input <span class="cursor"></span></div>
+        
+        <div class="ts d-7 stream-item" style="margin-top: 20px;">[-----]</div> <div class="lvl d-7 stream-item"></div> 
+        <div class="msg d-7 stream-item" style="margin-top: 20px; border-top: 1px dashed var(--dim); padding-top: 10px;">
+            <a href="#">[GITHUB]</a> &nbsp;
+            <a href="#">[PYPI]</a> &nbsp;
+            <a href="#">[LINKEDIN]</a> &nbsp;
+            <a href="#">[RESUME_PDF]</a> &nbsp;
+            <a href="#">[EMAIL]</a>
+        </div>
+        
+        <div style="height: 100px;"></div>
+    </div>
+
+</body>
+</html>

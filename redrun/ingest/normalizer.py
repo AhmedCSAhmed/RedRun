@@ -31,17 +31,11 @@ class Normalizer:
     - `level: message` - e.g., `ERROR: Database connection failed`
     """  
     
-    # Multiple patterns to support various log formats (ordered from most specific to least)
     LOG_PATTERNS = [
-        # Pattern 1: [level] timestamp message (timestamp is ISO format or similar) - check this FIRST
         re.compile(r'\[(?P<level>\w+)\] (?P<timestamp>\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}:\d{2}[\.\d]*[Z]?) (?P<message>.*)'),
-        # Pattern 2: [level] message (no timestamp) - check before pattern 3 to avoid false matches
         re.compile(r'\[(?P<level>\w+)\] (?P<message>.*)'),
-        # Pattern 3: [timestamp] level: message (timestamp must contain numbers/colons, not just any text)
         re.compile(r'\[(?P<timestamp>\d{4}[-/]\d{2}[-/]\d{2}[T\s]?\d{2}:\d{2}:\d{2}[\.\d]*[Z\s]*)\] (?P<level>\w+): (?P<message>.*)'),
-        # Pattern 4: timestamp level message (no brackets, timestamp first)
         re.compile(r'(?P<timestamp>\d{4}-\d{2}-\d{2}[T\s]?\d{2}:\d{2}:\d{2}[\.\d]*[Z]?) (?P<level>\w+) (?P<message>.*)'),
-        # Pattern 5: level: message (simple format, no brackets)
         re.compile(r'^(?P<level>\w+): (?P<message>.*)'),
     ]
     
@@ -102,13 +96,11 @@ class Normalizer:
         
         for line_num, line in enumerate(lines, start=1):
             try:
-                # Try each pattern until one matches
                 matched = False
                 for pattern in self.LOG_PATTERNS:
                     match = pattern.match(line)
                     if match:
                         log_group = match.groupdict()
-                        # Ensure all required fields exist
                         if 'timestamp' not in log_group:
                             log_group['timestamp'] = 'UNKNOWN'
                         if 'level' not in log_group:
@@ -116,7 +108,7 @@ class Normalizer:
                         if 'message' not in log_group:
                             log_group['message'] = line.strip()
                         
-                        log_group["line_number"] = str(line_num)  # the line number of the log line
+                        log_group["line_number"] = str(line_num)
                         structured_logs.append(log_group)
                         parsed_count += 1
                         matched = True
@@ -124,7 +116,6 @@ class Normalizer:
                         break
                 
                 if not matched:
-                    # No pattern matched
                     structured_logs.append({
                         "timestamp": "UNKNOWN",
                         "level": "UNPARSED",

@@ -129,8 +129,30 @@ class Console:
             # Format confidence as percentage
             confidence_pct = f"{confidence * 100:.0f}%"
             
-            # Truncate long messages
-            msg_preview = message[:100] + "..." if len(message) > 100 else message
+            # Display message with proper formatting
+            # For multi-line messages (from UNPARSED binding), show first 2-3 lines
+            # For single-line messages, show up to 400 characters
+            message_lines = message.split('\n')
+            if len(message_lines) > 1:
+                # Multi-line message: show first 3 lines or first 400 chars total
+                preview_lines = []
+                total_chars = 0
+                for line in message_lines[:3]:
+                    if total_chars + len(line) <= 400:
+                        preview_lines.append(line)
+                        total_chars += len(line) + 1  # +1 for newline
+                    else:
+                        # Truncate this line if needed
+                        remaining = 400 - total_chars
+                        if remaining > 20:  # Only add if meaningful space left
+                            preview_lines.append(line[:remaining] + "...")
+                        break
+                msg_preview = '\n   '.join(preview_lines)
+                if len(message_lines) > 3 or total_chars >= 400:
+                    msg_preview += "\n   ..."
+            else:
+                # Single-line message: show up to 400 characters
+                msg_preview = message[:400] + "..." if len(message) > 400 else message
             
             self._write(f"\n{i}. Line {line_num:4} | [{level:8}] | {category:25} | Confidence: {confidence_pct:>4}\n")
             self._write(f"   {msg_preview}\n")

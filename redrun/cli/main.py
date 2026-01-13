@@ -25,9 +25,6 @@ import argparse
 from pathlib import Path
 from typing import Optional
 
-# Ensure editable install finder is loaded BEFORE any redrun imports
-# This fixes the issue where 'redrun' command can't find the module
-# The problem is that the entry point script imports before .pth files are processed
 def _ensure_editable_finder():
     """
     Load the editable finder if this is a development install.
@@ -49,15 +46,12 @@ def _ensure_editable_finder():
         import site
         import importlib.util
         
-        # Find site-packages directory
         site_packages = [p for p in sys.path if 'site-packages' in p]
         if not site_packages:
             return
         
-        # Ensure .pth files are processed
         site.addsitedir(site_packages[0])
         
-        # Find and load the editable finder
         for sp in site_packages:
             try:
                 for file in os.listdir(sp):
@@ -74,9 +68,8 @@ def _ensure_editable_finder():
             except (OSError, PermissionError):
                 continue
     except Exception:
-        pass  # Not an editable install, or finder already loaded
+        pass
 
-# Load finder before imports
 _ensure_editable_finder()
 
 from redrun.ingest.reader import Reader
@@ -125,7 +118,6 @@ Built by Ahmed Ahmed (MVP)
     
     subparsers = parser.add_subparsers(dest='command', help='Command to execute')
     
-    # Analyze command
     analyze_parser = subparsers.add_parser(
         'analyze',
         help='Analyze a log file or read from stdin'
@@ -144,12 +136,10 @@ Built by Ahmed Ahmed (MVP)
     
     args = parser.parse_args()
     
-    # Handle no command
     if not args.command:
         parser.print_help()
         return 1
     
-    # Execute analyze command
     if args.command == 'analyze':
         return run_analyze(args.file, args.summary_only)
     
@@ -194,12 +184,8 @@ def run_analyze(file_path: Optional[str], summary_only: bool = False) -> int:
         >>> exit_code = run_analyze(None, summary_only=True)
     """
     try:
-        # Determine input source
         if file_path:
-            # Read from file
-            # Convert to Path and resolve relative paths from current working directory
             log_path = Path(file_path)
-            # Resolve to absolute path if it's relative
             if not log_path.is_absolute():
                 log_path = log_path.resolve()
             
@@ -211,13 +197,11 @@ def run_analyze(file_path: Optional[str], summary_only: bool = False) -> int:
                 return 1
             reader = Reader.from_file(log_path)
         else:
-            # Read from stdin
             if sys.stdin.isatty():
                 print("Error: No file provided and stdin is empty. Provide a file path or pipe input.", file=sys.stderr)
                 return 1
             reader = Reader.from_stdin()
         
-        # Run pipeline
         normalizer = Normalizer(reader.source)
         normalized = normalizer.normalize()
         
@@ -228,7 +212,6 @@ def run_analyze(file_path: Optional[str], summary_only: bool = False) -> int:
         classifier = Classifier()
         classified = classifier.classify_batch(errors)
         
-        # Display results
         console = Console()
         if summary_only:
             console.display_summary_only(classified, extract_stats)

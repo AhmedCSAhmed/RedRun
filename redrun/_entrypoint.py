@@ -23,8 +23,6 @@ editable mode or as a regular package.
 import sys
 import os
 
-# CRITICAL: Add project root to sys.path FIRST, before any imports
-# This ensures the editable finder can be found and loaded
 def _setup_path():
     """
     Add project root to sys.path if not already there.
@@ -39,18 +37,14 @@ def _setup_path():
         This modifies sys.path at runtime, which is generally not
         recommended, but is necessary here to fix editable install issues.
     """
-    # Find the project root (where this file is located)
     current_file = os.path.abspath(__file__)
     project_root = os.path.dirname(os.path.dirname(current_file))
     
-    # Add to sys.path if not already there
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
 
-# Setup path first
 _setup_path()
 
-# Load editable finder BEFORE any redrun imports
 def _load_editable_finder():
     """
     Load the editable finder if this is a development install.
@@ -77,15 +71,12 @@ def _load_editable_finder():
         import site
         import importlib.util
         
-        # Find site-packages directory
         site_packages = [p for p in sys.path if 'site-packages' in p]
         if not site_packages:
             return
         
-        # Ensure .pth files are processed
         site.addsitedir(site_packages[0])
         
-        # Find and load the editable finder
         for sp in site_packages:
             try:
                 for file in os.listdir(sp):
@@ -102,12 +93,10 @@ def _load_editable_finder():
             except (OSError, PermissionError):
                 continue
     except Exception:
-        pass  # Not an editable install, or finder already loaded
+        pass
 
-# Load finder first
 _load_editable_finder()
 
-# Now import and run main
 from redrun.cli.main import main
 
 if __name__ == '__main__':
